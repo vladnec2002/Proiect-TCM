@@ -1,0 +1,79 @@
+--------------------1---------------------
+@startuml
+skinparam componentStyle rectangle
+
+package "CLI" {
+  [main.py]
+}
+
+package "Core Crypto" {
+  [ffs.py]
+  [utils.py]
+}
+
+package "Storage" {
+  [storage.py]
+}
+
+package "Protocol Demo" {
+  [prover.py]
+  [verifier.py]
+  [wire.py]
+}
+
+package "Security Analysis" {
+  [attack_demo.py]
+}
+
+main.py --> ffs.py
+main.py --> utils.py
+main.py --> storage.py
+
+ffs.py --> utils.py
+
+prover.py --> storage.py
+prover.py --> wire.py
+
+verifier.py --> storage.py
+verifier.py --> prover.py
+verifier.py --> wire.py
+
+attack_demo.py --> ffs.py
+attack_demo.py --> storage.py
+@enduml
+------------------------2-------------------------------
+@startuml
+participant Prover
+participant Verifier
+
+Prover -> Prover : alege r, b
+Prover -> Verifier : x = (-1)^b * r^2 mod n
+
+Verifier -> Verifier : generează challenge e[1..k]
+Verifier -> Prover : e[1..k]
+
+Prover -> Prover : y = r * Π s_j^{e_j} mod n
+Prover -> Verifier : y
+
+Verifier -> Verifier : z = y^2 * Π v_j^{e_j} mod n
+Verifier -> Verifier : accept dacă z = ±x și z ≠ 0
+@enduml
+----------------------------3----------------------------------
+
+@startuml
+participant "verifier.py" as V
+participant "prover.py" as P
+
+V -> P : (start subprocess)
+P -> V : {"type":"hello","k":k,"t":t}
+
+loop round = 1..t
+  P -> V : {"type":"commit","round":r,"x":x}
+  V -> P : {"type":"challenge","round":r,"e":[...]}
+  P -> V : {"type":"response","round":r,"y":y}
+  V -> P : {"type":"result","round":r,"ok":true/false}
+end
+
+P -> V : {"type":"done","ok":true/false}
+@enduml
+
